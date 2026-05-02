@@ -194,6 +194,28 @@ The Vercel AI Gateway is zero-config — no additional API key is needed when de
 
 ---
 
+## Local development
+
+```bash
+# Install dependencies
+pnpm install
+
+# Create a local env file and fill in the three variables above
+cp .env.example .env.local
+
+# Start the dev server
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+Pre-warm the compliance knowledge base before running your first scan:
+
+```bash
+curl http://localhost:3000/api/compliance-docs?refresh=true
+```
+
+---
 
 ## Project structure
 
@@ -220,6 +242,78 @@ lib/
 hooks/
   use-scan.ts                  # Client-side scan state management
 ```
+
+---
+
+## Roadmap — Phase 2
+
+The following capabilities are planned for the next iteration. Placeholder module stubs are already present in `lib/agents/` to guide integration.
+
+---
+
+### 1. Vendor & Third-Party Risk Management (TPRM)
+
+**What it does:** Extends Guardrail beyond your own code to audit every SaaS tool in your supply chain. When a new vendor is added, the agent autonomously scrapes that vendor's public Trust Center or Security page to verify they hold their own SOC 2 or ISO 27001 certification.
+
+**The Mubit edge:** Every vendor check is stored in Mubit's persistent memory. If the same vendor is evaluated again months later, the agent instantly surfaces its historical security score: *"This vendor was flagged in our March review — poor encryption-at-rest posture."*
+
+**Planned integrations:** Bright Data (Trust Center scraping) · Mubit (vendor risk memory) · Vercel AI Gateway (certification verification LLM)
+
+**Placeholder:** `lib/agents/tprm-agent.ts`
+
+---
+
+### 2. Automated Offboarding Security
+
+**What it does:** Eliminates "ghost access" — the biggest hidden compliance risk. Former employees and contractors who retain access to GitHub, Notion, cloud environments, or SaaS tools after leaving create audit failures and breach vectors. The agent monitors HR systems and communication channels (Slack, email) for offboarding signals and immediately audits all access lists, autonomously revoking stale permissions and logging every removal in Mubit as tamper-proof audit evidence.
+
+**Planned integrations:** Slack/HR webhooks (offboarding signal) · GitHub API (collaborator revocation) · Mubit (access removal audit trail) · Bright Data (cross-tool access verification)
+
+**Placeholder:** `lib/agents/offboarding-agent.ts`
+
+---
+
+### 3. Infrastructure Drift Correction
+
+**What it does:** Most cloud breaches trace back to one root cause — a developer made a "quick manual fix" in the AWS console that was never reflected in the Terraform or Kubernetes source code. Guardrail continuously compares live cloud configuration against your declared Infrastructure-as-Code. When a drift is detected it raises a structured decision: *"Manual change detected on AWS Load Balancer security group — revert to source code or update the IaC to match?"*
+
+**Planned integrations:** Bright Data (cloud console scraping) · GitHub API (IaC source reading) · Mubit (drift event audit trail) · Vercel AI Gateway (change classification LLM)
+
+**Placeholder:** `lib/agents/drift-agent.ts`
+
+---
+
+### 4. Regulatory Change Monitoring
+
+**What it does:** Compliance frameworks are not static — the EU AI Act, GDPR amendments, PCI-DSS version updates, and NIST revisions all carry real deadlines and penalties. The agent uses Bright Data to continuously scan government regulatory portals, official law firm bulletins, and standards body release notes for new or amended requirements. It then cross-references your internal policies stored in Mubit and proactively notifies you when a new regulation makes your current security policy outdated — before your next audit, not after.
+
+**Planned integrations:** Bright Data (regulatory portal monitoring) · Mubit (policy document storage + delta comparison) · Vercel AI Gateway (impact assessment LLM)
+
+**Placeholder:** `lib/agents/regulatory-monitor-agent.ts`
+
+---
+
+### Phase 2 architecture overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Phase 1 (Live)                                             │
+│  GitHub file scan → KB enrichment → LLM analysis → Audit   │
+└────────────────────┬────────────────────────────────────────┘
+                     │ shared: Mubit audit trail
+                     │         Bright Data scraping
+                     │         Vercel AI Gateway LLM
+                     ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Phase 2 (Planned)                                          │
+│  ├── TPRM Agent          — vendor Trust Center auditing     │
+│  ├── Offboarding Agent   — ghost access detection + revoke  │
+│  ├── Drift Agent         — IaC vs live cloud comparison     │
+│  └── Reg Monitor Agent   — regulatory change alerting       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+All Phase 2 agents share the same foundation built in Phase 1: Mubit for persistent memory and audit trails, Bright Data for autonomous web data collection, and the Vercel AI Gateway for LLM reasoning — they are extensions of the pipeline, not rebuilds.
 
 ---
 
