@@ -194,28 +194,6 @@ The Vercel AI Gateway is zero-config — no additional API key is needed when de
 
 ---
 
-## Local development
-
-```bash
-# Install dependencies
-pnpm install
-
-# Create a local env file and fill in the three variables above
-cp .env.example .env.local
-
-# Start the dev server
-pnpm dev
-```
-
-Open [http://localhost:3000](http://localhost:3000).
-
-Pre-warm the compliance knowledge base before running your first scan:
-
-```bash
-curl http://localhost:3000/api/compliance-docs?refresh=true
-```
-
----
 
 ## Project structure
 
